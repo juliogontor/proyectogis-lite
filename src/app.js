@@ -60,13 +60,13 @@ const map = L.map('map').setView([20.85, -103.75], 13);
 // 3. Este es el truco: VectorGrid no soporta Base64 nativo, 
 // así que "engañamos" al cargador o usamos una petición manual si es necesario.
 // Cargar Capa Vectorial (M3)
-const mvtLayer = L.vectorGrid.protobuf(mvtUrl, vectorTileOptions).addTo(map);
+const mvtLayer = new CustomVectorLayer("", vectorTileOptions).addTo(map);
 
-// Interactividad básica (M4: Ficha de información rápida) [cite: 38]
-mvtLayer.on('click', function(e) {
-    const properties = e.layer.properties;
-    L.popup()
-        .setLatLng(e.latlng)
-        .setContent(`<b>ID Colonia:</b> ${properties.id}`)
-        .openOn(map);
-});
+        // 6. POPUP AL HACER CLIC
+        mvtLayer.on('click', function(e) {
+            const props = e.layer.properties;
+            L.popup()
+                .setLatLng(e.latlng)
+                .setContent(`<b>Colonia ID:</b> ${props.id || 'N/A'}`)
+                .openOn(map);
+        });

@@ -15,22 +15,25 @@ async function fetchMvtAsBase64(url) {
         headers: { "apikey": SB_KEY, "Authorization": `Bearer ${SB_KEY}` }
     });
     const json = await response.json();
-    // Supabase devuelve un array de objetos, tomamos el valor de la función
-    const base64String = json;
-
+    const base64String = json[0].get_colonia_mvt; 
+    
     if (!base64String) return null;
 
-    // Decodificar Base64 a Uint8Array
     const binaryString = window.atob(base64String);
     const bytes = new Uint8Array(binaryString.length);
     for (let i = 0; i < binaryString.length; i++) {
         bytes[i] = binaryString.charCodeAt(i);
     }
-   
-    // 2. LA CLAVE: Decodificar el binario para que tenga .layers
-            // Esto es lo que le falta a tu captura de pantalla
-            const pbf = new Pbf(bytes);
-            return new VectorTile.VectorTile(pbf);
+
+    // DECODIFICACIÓN
+    try {
+        const pbf = new Pbf(bytes);
+        // Intentamos con vectorTile global
+        return new vectorTile.VectorTile(pbf);
+    } catch (e) {
+        console.error("Error decodificando el PBF:", e);
+        return null;
+    }
 }
 
 // 4. EXTENSIÓN PERSONALIZADA DE VECTORGRID

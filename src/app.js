@@ -15,8 +15,8 @@ async function fetchMvtAsBase64(url) {
         headers: { "apikey": SB_KEY, "Authorization": `Bearer ${SB_KEY}` }
     });
     const json = await response.json();
-    const base64String = json; 
-    
+    const base64String = json;
+
     if (!base64String) return null;
 
     const binaryString = window.atob(base64String);
@@ -29,17 +29,17 @@ async function fetchMvtAsBase64(url) {
     try {
         const pbf = new Pbf(bytes);
         // Intentamos con vectorTile global
-       const vtProvider = window.VectorTile || window.vectorTile || (window.Mapbox && window.Mapbox.VectorTile);
-        
+        const vtProvider = window.VectorTile || window.vectorTile || (window.Mapbox && window.Mapbox.VectorTile);
+
         if (!vtProvider) {
             console.error("Error: No se encontró la librería VectorTile en window.");
             return null;
         }
 
         // Si vtProvider es la clase directa, la usamos, si no, buscamos .VectorTile dentro
-        const tile = (typeof vtProvider.VectorTile === 'function') 
-                     ? new vtProvider.VectorTile(pbf) 
-                     : new vtProvider(pbf);
+        const tile = (typeof vtProvider.VectorTile === 'function')
+            ? new vtProvider.VectorTile(pbf)
+            : new vtProvider(pbf);
     } catch (e) {
         console.error("Error decodificando el PBF:", e);
         return null;

@@ -39,7 +39,7 @@ maplibregl.addProtocol('supabase', async (params, abortController) => {
     });
     
     const json = await response.json();
-    const base64 = json[0].get_colonia_mvt_v3; // Nombre de tu función
+    const base64 = json; // Nombre de tu función
 
     if (!base64) {
         return { data: new Uint8Array(0).buffer };

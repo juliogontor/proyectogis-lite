@@ -16,7 +16,7 @@ const map = L.map('map').setView([20.85, -103.75], 13);
             });
             const json = await response.json();
             // Supabase devuelve un array de objetos, tomamos el valor de la función
-            const base64String = json[0]; 
+            const base64String = json; 
             
             if (!base64String) return null;
 

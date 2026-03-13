@@ -33,7 +33,6 @@ const vectorTileOptions = {
         }
     }
 };
-};
 
 // Cargar Capa Vectorial (M3)
 const mvtLayer = L.vectorGrid.protobuf(mvtUrl, vectorTileOptions).addTo(map);

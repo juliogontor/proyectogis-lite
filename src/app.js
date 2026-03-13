@@ -11,7 +11,7 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 }).addTo(map);
 
 // URL de la función RPC para MVT
-const mvtUrl = `${SB_URL}/rest/v1/rpc/get_parcelas_mvt?x={x}&y={y}&z={z}`;
+const mvtUrl = `${SB_URL}/rest/v1/rpc/get_colonia_mvt?x={x}&y={y}&z={z}`;
 
 // Estilo de la capa de parcelas (M3) [cite: 36]
 const vectorTileOptions = {
@@ -41,6 +41,6 @@ mvtLayer.on('click', function(e) {
     const properties = e.layer.properties;
     L.popup()
         .setLatLng(e.latlng)
-        .setContent(`<b>ID Parcela:</b> ${properties.id}`)
+        .setContent(`<b>ID Colonia:</b> ${properties.id}`)
         .openOn(map);
 });

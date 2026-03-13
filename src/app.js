@@ -17,10 +17,10 @@ const mvtUrl = `${SB_URL}/rest/v1/rpc/get_colonia_mvt?x={x}&y={y}&z={z}`;
 const vectorTileOptions = {
     interactive: true,
     vectorTileLayerStyles: {
-        colonia: {
+        "colonia": { // <--- DEBE coincidir con el segundo parámetro de ST_AsMVT en el SQL
             fill: true,
             fillColor: '#2ecc71',
-            fillOpacity: 0.3,
+            fillOpacity: 0.5,
             color: '#27ae60',
             weight: 2
         }
@@ -28,9 +28,11 @@ const vectorTileOptions = {
     fetchOptions: {
         headers: {
             "apikey": SB_KEY,
-            "Authorization": `Bearer ${SB_KEY}`
+            "Authorization": `Bearer ${SB_KEY}`,
+            "Accept": "application/vnd.pgrst.object+octet-stream" // <--- AGREGA ESTO
         }
     }
+};
 };
 
 // Cargar Capa Vectorial (M3)

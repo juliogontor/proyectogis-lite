@@ -29,7 +29,7 @@ const vectorTileOptions = {
         headers: {
             "apikey": SB_KEY,
             "Authorization": `Bearer ${SB_KEY}`,
-           // "Accept": "application/vnd.pgrst.object+octet-stream" // <--- AGREGA ESTO
+            "Accept": "application/vnd.pgrst.object+octet-stream" // <--- AGREGA ESTO
         }
     }
 };

@@ -15,7 +15,7 @@ async function fetchMvtAsBase64(url) {
         headers: { "apikey": SB_KEY, "Authorization": `Bearer ${SB_KEY}` }
     });
     const json = await response.json();
-    const base64String = json[0].get_colonia_mvt; 
+    const base64String = json; 
     
     if (!base64String) return null;
 

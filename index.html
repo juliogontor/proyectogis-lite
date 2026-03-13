@@ -58,9 +58,9 @@ maplibregl.addProtocol('supabase', async (params, abortController) => {
 // 2. Configurar el mapa
 const map = new maplibregl.Map({
     container: 'map',
-    style: 'https://demotiles.maplibre.org/style.json',
-    center: [-103.24, 20.62],
-    zoom: 12
+    style: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json', 
+    center: [-103.24, 20.62], // Centro de Tonalá
+    zoom: 10
 });
 
 map.on('load', () => {

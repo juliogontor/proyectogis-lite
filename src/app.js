@@ -29,7 +29,17 @@ async function fetchMvtAsBase64(url) {
     try {
         const pbf = new Pbf(bytes);
         // Intentamos con vectorTile global
-        return new vectorTile.VectorTile(pbf);
+       const vtProvider = window.VectorTile || window.vectorTile || (window.Mapbox && window.Mapbox.VectorTile);
+        
+        if (!vtProvider) {
+            console.error("Error: No se encontró la librería VectorTile en window.");
+            return null;
+        }
+
+        // Si vtProvider es la clase directa, la usamos, si no, buscamos .VectorTile dentro
+        const tile = (typeof vtProvider.VectorTile === 'function') 
+                     ? new vtProvider.VectorTile(pbf) 
+                     : new vtProvider(pbf);
     } catch (e) {
         console.error("Error decodificando el PBF:", e);
         return null;

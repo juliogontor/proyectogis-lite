@@ -30,54 +30,59 @@
         const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InphbWFvdXF0d3RpYXBpYnNjbWFmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzNjY1ODMsImV4cCI6MjA4ODk0MjU4M30.Uzzr40xDGUyRYbnjoTFNt7ridzb8F1UFjBglo35coPE";
 
 
-        const map = new maplibregl.Map({
-            container: 'map',
-            style: 'https://demotiles.maplibre.org/style.json', // Estilo base simple
-            center: [-103.75, 20.85],
-            zoom: 12,
-            // Esta función añade la llave de Supabase a cada petición de tiles
-            transformRequest: (url, resourceType) => {
-                if (url.includes('supabase.co')) {
-                    return {
-                        url: url,
-                        headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
-                    };
-                } 
-            }
-        });
+       // 1. Registrar el protocolo personalizado 'supabase://'
+maplibregl.addProtocol('supabase', async (params, abortController) => {
+    const url = params.url.replace('supabase://', 'https://');
+    
+    const response = await fetch(url, {
+        headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
+    });
+    
+    const json = await response.json();
+    const base64 = json[0].get_colonia_mvt_v3; // Nombre de tu función
 
-        map.on('load', () => {
-            // Agregamos la fuente de datos usando nuestra NUEVA función RPC
-            map.addSource('colonias-source', {
-                type: 'vector',
-                tiles: [
-                    `${SB_URL}/rest/v1/rpc/get_colonia_mvt_v2?x={x}&y={y}&z={z}`
-                ],
-                minzoom: 0,
-                maxzoom: 20
-            });
+    if (!base64) {
+        return { data: new Uint8Array(0).buffer };
+    }
 
-            // Agregamos la capa visual
-            map.addLayer({
-                'id': 'colonias-layer',
-                'type': 'fill',
-                'source': 'colonias-source',
-                'source-layer': 'colonia', // El nombre que pusiste en ST_AsMVT
-                'paint': {
-                    'fill-color': '#2ecc71',
-                    'fill-opacity': 0.5,
-                    'fill-outline-color': '#27ae60'
-                }
-            });
+    // Convertir Base64 a ArrayBuffer directamente
+    const binary = atob(base64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) {
+        bytes[i] = binary.charCodeAt(i);
+    }
 
-            // Interactividad: clic para ver ID
-            map.on('click', 'colonias-layer', (e) => {
-                new maplibregl.Popup()
-                    .setLngLat(e.lngLat)
-                    .setHTML(`<b>ID:</b> ${e.features[0].properties.id}`)
-                    .addTo(map);
-            });
-        });
+    return { data: bytes.buffer };
+});
+
+// 2. Configurar el mapa
+const map = new maplibregl.Map({
+    container: 'map',
+    style: 'https://demotiles.maplibre.org/style.json',
+    center: [-103.75, 20.85],
+    zoom: 12
+});
+
+map.on('load', () => {
+    map.addSource('colonias', {
+        type: 'vector',
+        // Usamos nuestro protocolo 'supabase://' en lugar de 'https://'
+        tiles: [
+            `supabase://${SB_URL.replace('https://','')}/rest/v1/rpc/get_colonia_mvt_v3?x={x}&y={y}&z={z}`
+        ]
+    });
+
+    map.addLayer({
+        'id': 'colonias-layer',
+        'type': 'fill',
+        'source': 'colonias',
+        'source-layer': 'colonia',
+        'paint': {
+            'fill-color': '#00ff00',
+            'fill-opacity': 0.5
+        }
+    });
+});
     </script>
 </body>
 

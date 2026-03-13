@@ -17,7 +17,7 @@ const mvtUrl = `${SB_URL}/rest/v1/rpc/get_colonia_mvt?x={x}&y={y}&z={z}`;
 const vectorTileOptions = {
     interactive: true,
     vectorTileLayerStyles: {
-        parcelas_layer: {
+        colonia: {
             fill: true,
             fillColor: '#2ecc71',
             fillOpacity: 0.3,

@@ -26,7 +26,11 @@ async function fetchMvtAsBase64(url) {
     for (let i = 0; i < binaryString.length; i++) {
         bytes[i] = binaryString.charCodeAt(i);
     }
-    return bytes.buffer;
+   
+    // 2. LA CLAVE: Decodificar el binario para que tenga .layers
+            // Esto es lo que le falta a tu captura de pantalla
+            const pbf = new Pbf(bytes);
+            return new VectorTile.VectorTile(pbf);
 }
 
 // 4. EXTENSIÓN PERSONALIZADA DE VECTORGRID

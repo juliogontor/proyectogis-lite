@@ -1,36 +1,84 @@
-<html>
-  <head>
-    <title>TEST</title>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link
-      rel="stylesheet"
-      href="https://unpkg.com/maplibre-gl@4.1.2/dist/maplibre-gl.css"
-      crossorigin="anonymous"
-    />
-    <script src="./src/app.js"></script>
-    <script
-      src="https://unpkg.com/maplibre-gl@4.1.2/dist/maplibre-gl.js"
-      crossorigin="anonymous"
-    ></script>
-    <script src="https://unpkg.com/protomaps-themes-base@2.0.0-alpha.5/dist/index.js"></script>
-    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geoportal - MapLibre Edition</title>
+    <script src="https://unpkg.com/maplibre-gl@4.0.0/dist/maplibre-gl.js"></script>
+    <link href="https://unpkg.com/maplibre-gl@4.0.0/dist/maplibre-gl.css" rel="stylesheet" />
     <style>
-      body {
-        margin: 0;
-      }
-      #map {
-        height: 100%;
-        width: 100%;
-      }
-      span {
-        cursor: pointer;
-        color: blue;
-        text-decoration: underline;
-      }
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        #map {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 100%;
+        }
     </style>
-  </head>
-  <body>
+</head>
+
+<body>
     <div id="map"></div>
-  </body>
+
+    <script>
+        const SB_URL = "https://zamaouqtwtiapibscmaf.supabase.co";
+        const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InphbWFvdXF0d3RpYXBpYnNjbWFmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzNjY1ODMsImV4cCI6MjA4ODk0MjU4M30.Uzzr40xDGUyRYbnjoTFNt7ridzb8F1UFjBglo35coPE";
+
+
+        const map = new maplibregl.Map({
+            container: 'map',
+            style: 'https://demotiles.maplibre.org/style.json', // Estilo base simple
+            center: [-103.75, 20.85],
+            zoom: 12,
+            // Esta función añade la llave de Supabase a cada petición de tiles
+            transformRequest: (url, resourceType) => {
+                if (url.includes('supabase.co')) {
+                    return {
+                        url: url,
+                        headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
+                    };
+                }
+            }
+        });
+
+        map.on('load', () => {
+            // Agregamos la fuente de datos usando nuestra NUEVA función RPC
+            map.addSource('colonias-source', {
+                type: 'vector',
+                tiles: [
+                    `${SB_URL}/rest/v1/rpc/get_colonia_mvt_v2?x={x}&y={y}&z={z}`
+                ],
+                minzoom: 0,
+                maxzoom: 20
+            });
+
+            // Agregamos la capa visual
+            map.addLayer({
+                'id': 'colonias-layer',
+                'type': 'fill',
+                'source': 'colonias-source',
+                'source-layer': 'colonia', // El nombre que pusiste en ST_AsMVT
+                'paint': {
+                    'fill-color': '#2ecc71',
+                    'fill-opacity': 0.5,
+                    'fill-outline-color': '#27ae60'
+                }
+            });
+
+            // Interactividad: clic para ver ID
+            map.on('click', 'colonias-layer', (e) => {
+                new maplibregl.Popup()
+                    .setLngLat(e.lngLat)
+                    .setHTML(`<b>ID:</b> ${e.features[0].properties.id}`)
+                    .addTo(map);
+            });
+        });
+    </script>
+</body>
+
 </html>

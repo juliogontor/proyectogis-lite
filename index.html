@@ -5,8 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Geoportal - MapLibre Edition</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.3/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.0.3/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script src="https://unpkg.com/maplibre-gl@4.0.0/dist/maplibre-gl.js"></script>
     <link href="https://unpkg.com/maplibre-gl@4.0.0/dist/maplibre-gl.css" rel="stylesheet" />
     <script src="https://unpkg.com/georaster-layer-for-leaflet/dist/georaster-layer-for-leaflet.min.js"></script>
@@ -89,28 +88,18 @@
                     parseGeoraster(arrayBuffer).then(georaster => {
                         console.log("georaster:", georaster);
 
-                        /*
-                            GeoRasterLayer is an extension of GridLayer,
-                            which means can use GridLayer options like opacity.
-                  
-                            Just make sure to include the georaster option!
-                  
-                            Optionally set the pixelValuesToColorFn function option to customize
-                            how values for a pixel are translated to a color.
-                  
-                            https://leafletjs.com/reference.html#gridlayer
-                        */
                         var layer = new GeoRasterLayer({
                             georaster: georaster,
-                            opacity: 0.7,
+                            opacity: 1,
                             pixelValuesToColorFn: values => values[0] === 42 ? '#ffffff' : '#000000',
                             resolution: 64 // optional parameter for adjusting display resolution
                         });
                         layer.addTo(map);
+                      
+                    });
+                });
 
-                        // 3. Añadirla al mapa
-                        // El segundo parámetro 'colonias-layer' hace que el TIF se ponga ABAJO de los polígonos
-                        map.addLayer({
+           map.addLayer({
                             'id': 'colonias-layer',
                             'type': 'fill',
                             'source': 'colonias',
@@ -119,9 +108,7 @@
                                 'fill-color': '#00ff00',
                                 'fill-opacity': 0.5
                             }
-                        });
-                    });
-                });
+                        });       
         });
     </script>
 </body>

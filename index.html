@@ -7,8 +7,7 @@
     <title>Geoportal - MapLibre Edition</title>
     <script src="https://unpkg.com/maplibre-gl@4.0.0/dist/maplibre-gl.js"></script>
     <link href="https://unpkg.com/maplibre-gl@4.0.0/dist/maplibre-gl.css" rel="stylesheet" />
-    <script src="https://unpkg.com/georaster"></script>
-    <script src="https://unpkg.com/georaster-layer-for-maplibre/dist/georaster-layer-for-maplibre.min.js"></script>
+    <script src="https://unpkg.com/georaster-layer-for-leaflet/dist/georaster-layer-for-leaflet.min.js"></script>
     <style>
         body {
             margin: 0;
@@ -32,84 +31,95 @@
         const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InphbWFvdXF0d3RpYXBpYnNjbWFmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzNjY1ODMsImV4cCI6MjA4ODk0MjU4M30.Uzzr40xDGUyRYbnjoTFNt7ridzb8F1UFjBglo35coPE";
 
 
-       // 1. Registrar el protocolo personalizado 'supabase://'
-maplibregl.addProtocol('supabase', async (params, abortController) => {
-    const url = params.url.replace('supabase://', 'https://');
-    
-    const response = await fetch(url, {
-        headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
-    });
-    
-    const json = await response.json();
-    const base64 = json; // Nombre de tu función
+        // 1. Registrar el protocolo personalizado 'supabase://'
+        maplibregl.addProtocol('supabase', async (params, abortController) => {
+            const url = params.url.replace('supabase://', 'https://');
 
-    if (!base64) {
-        return { data: new Uint8Array(0).buffer };
-    }
+            const response = await fetch(url, {
+                headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
+            });
 
-    // Convertir Base64 a ArrayBuffer directamente
-    const binary = atob(base64);
-    const bytes = new Uint8Array(binary.length);
-    for (let i = 0; i < binary.length; i++) {
-        bytes[i] = binary.charCodeAt(i);
-    }
+            const json = await response.json();
+            const base64 = json; // Nombre de tu función
 
-    return { data: bytes.buffer };
-});
+            if (!base64) {
+                return { data: new Uint8Array(0).buffer };
+            }
 
-// 2. Configurar el mapa
-const map = new maplibregl.Map({
-    container: 'map',
-    style: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json', 
-    center: [-103.24, 20.62], // Centro de Tonalá
-    zoom: 10
-});
+            // Convertir Base64 a ArrayBuffer directamente
+            const binary = atob(base64);
+            const bytes = new Uint8Array(binary.length);
+            for (let i = 0; i < binary.length; i++) {
+                bytes[i] = binary.charCodeAt(i);
+            }
 
-map.on('load', () => {
-    map.addSource('colonias', {
-        type: 'vector',
-        // Usamos nuestro protocolo 'supabase://' en lugar de 'https://'
-        tiles: [
-            `supabase://${SB_URL.replace('https://','')}/rest/v1/rpc/get_colonia_mvt_v3?x={x}&y={y}&z={z}`
-        ]
-    });
+            return { data: bytes.buffer };
+        });
 
-    
+        // 2. Configurar el mapa
+        const map = new maplibregl.Map({
+            container: 'map',
+            style: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
+            center: [-103.24, 20.62], // Centro de Tonalá
+            zoom: 10
+        });
 
-    // URL pública de tu archivo en Supabase
-const urlTif = "https://zamaouqtwtiapibscmaf.supabase.co/storage/v1/object/public/rasters/atoto2.tif";
+        map.on('load', () => {
+            map.addSource('colonias', {
+                type: 'vector',
+                // Usamos nuestro protocolo 'supabase://' en lugar de 'https://'
+                tiles: [
+                    `supabase://${SB_URL.replace('https://', '')}/rest/v1/rpc/get_colonia_mvt_v3?x={x}&y={y}&z={z}`
+                ]
+            });
 
-// 1. Leer el archivo GeoTIFF
-parseGeoraster(urlTif).then(georaster => {
-    console.log("GeoTIFF cargado correctamente:", georaster);
 
-    // 2. Crear la capa para MapLibre
-    const layer = new GeoRasterLayer({
-        georaster: georaster,
-        opacity: 0.8, // Un poco de transparencia para ver el mapa base
-        resolution: 256 // Calidad del renderizado
-    });
+            var parse_georaster = require("georaster");
+            var GeoRasterLayer = require("georaster-layer-for-leaflet");
 
-    // 3. Añadirla al mapa
-    // El segundo parámetro 'colonias-layer' hace que el TIF se ponga ABAJO de los polígonos
-    map.addLayer({
-        'id': 'colonias-layer',
-        'type': 'fill',
-        'source': 'colonias',
-        'source-layer': 'colonia',
-        'paint': {
-            'fill-color': '#00ff00',
-            'fill-opacity': 0.5
-        }
-    });
+            // URL pública de tu archivo en Supabase
+            const urlTif = "https://zamaouqtwtiapibscmaf.supabase.co/storage/v1/object/public/rasters/atoto2.tif";
 
-    // 4. Opcional: Hacer zoom automático a donde está el TIF
-    map.fitBounds([
-        [georaster.xmin, georaster.ymin],
-        [georaster.xmax, georaster.ymax]
-    ]);
-});
-});
+
+            fetch(urlTif)
+                .then(response => response.arrayBuffer())
+                .then(arrayBuffer => {
+                    parseGeoraster(arrayBuffer).then(georaster => {
+                        console.log("georaster:", georaster);
+
+                        /*
+                            GeoRasterLayer is an extension of GridLayer,
+                            which means can use GridLayer options like opacity.
+                  
+                            Just make sure to include the georaster option!
+                  
+                            Optionally set the pixelValuesToColorFn function option to customize
+                            how values for a pixel are translated to a color.
+                  
+                            https://leafletjs.com/reference.html#gridlayer
+                        */
+                        var layer = new GeoRasterLayer({
+                            georaster: georaster,
+                            opacity: 0.7,
+                            pixelValuesToColorFn: values => values[0] === 42 ? '#ffffff' : '#000000',
+                            resolution: 64 // optional parameter for adjusting display resolution
+                        });
+                        layer.addTo(map);
+
+                        // 3. Añadirla al mapa
+                        // El segundo parámetro 'colonias-layer' hace que el TIF se ponga ABAJO de los polígonos
+                        map.addLayer({
+                            'id': 'colonias-layer',
+                            'type': 'fill',
+                            'source': 'colonias',
+                            'source-layer': 'colonia',
+                            'paint': {
+                                'fill-color': '#00ff00',
+                                'fill-opacity': 0.5
+                            }
+                        });
+                    });
+                });
     </script>
 </body>
 

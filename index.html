@@ -74,16 +74,7 @@ map.on('load', () => {
         ]
     });
 
-    map.addLayer({
-        'id': 'colonias-layer',
-        'type': 'fill',
-        'source': 'colonias',
-        'source-layer': 'colonia',
-        'paint': {
-            'fill-color': '#00ff00',
-            'fill-opacity': 0.5
-        }
-    });
+    
 
     // URL pública de tu archivo en Supabase
 const urlTif = "https://zamaouqtwtiapibscmaf.supabase.co/storage/v1/object/public/rasters/atoto2.tif";
@@ -101,7 +92,16 @@ parseGeoraster(urlTif).then(georaster => {
 
     // 3. Añadirla al mapa
     // El segundo parámetro 'colonias-layer' hace que el TIF se ponga ABAJO de los polígonos
-    map.addLayer(layer, 'colonias-layer');
+    map.addLayer({
+        'id': 'colonias-layer',
+        'type': 'fill',
+        'source': 'colonias',
+        'source-layer': 'colonia',
+        'paint': {
+            'fill-color': '#00ff00',
+            'fill-opacity': 0.5
+        }
+    });
 
     // 4. Opcional: Hacer zoom automático a donde está el TIF
     map.fitBounds([

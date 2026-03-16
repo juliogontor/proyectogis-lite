@@ -24,7 +24,7 @@
 
 <body>
     <div id="map"></div>
-
+<script src="https://unpkg.com/@geomatico/maplibre-cog-protocol@0.5.0/dist/index.js"></script>
     <script>
         const SB_URL = "https://zamaouqtwtiapibscmaf.supabase.co";
         const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InphbWFvdXF0d3RpYXBpYnNjbWFmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzNjY1ODMsImV4cCI6MjA4ODk0MjU4M30.Uzzr40xDGUyRYbnjoTFNt7ridzb8F1UFjBglo35coPE";
@@ -64,6 +64,19 @@ const map = new maplibregl.Map({
 });
 
 map.on('load', () => {
+    
+      map.addSource('cogSource', {
+            type: 'raster',
+            url: 'cog://https://zamaouqtwtiapibscmaf.supabase.co/storage/v1/object/public/rasters/atoto2.tif',
+            tileSize: 256
+        });
+
+        map.addLayer({
+            id: 'cogLayer',
+            source: 'cogSource',
+            type: 'raster'
+        });
+
     map.addSource('colonias', {
         type: 'vector',
         // Usamos nuestro protocolo 'supabase://' en lugar de 'https://'

@@ -7,6 +7,8 @@
     <title>Geoportal - MapLibre Edition</title>
     <script src="https://unpkg.com/maplibre-gl@4.0.0/dist/maplibre-gl.js"></script>
     <link href="https://unpkg.com/maplibre-gl@4.0.0/dist/maplibre-gl.css" rel="stylesheet" />
+    <script src="https://unpkg.com/georaster/dist/georaster.browser.bundle.min.js"></script>
+    <script src="https://unpkg.com/georaster-layer-for-maplibre/dist/georaster-layer-for-maplibre.min.js"></script>
     <style>
         body {
             margin: 0;
@@ -82,6 +84,31 @@ map.on('load', () => {
             'fill-opacity': 0.5
         }
     });
+
+    // URL pública de tu archivo en Supabase
+const urlTif = "https://zamaouqtwtiapibscmaf.supabase.co/storage/v1/object/public/rasters/atoto2.tif";
+
+// 1. Leer el archivo GeoTIFF
+parseGeoraster(urlTif).then(georaster => {
+    console.log("GeoTIFF cargado correctamente:", georaster);
+
+    // 2. Crear la capa para MapLibre
+    const layer = new GeoRasterLayer({
+        georaster: georaster,
+        opacity: 0.8, // Un poco de transparencia para ver el mapa base
+        resolution: 256 // Calidad del renderizado
+    });
+
+    // 3. Añadirla al mapa
+    // El segundo parámetro 'colonias-layer' hace que el TIF se ponga ABAJO de los polígonos
+    map.addLayer(layer, 'colonias-layer');
+
+    // 4. Opcional: Hacer zoom automático a donde está el TIF
+    map.fitBounds([
+        [georaster.xmin, georaster.ymin],
+        [georaster.xmax, georaster.ymax]
+    ]);
+});
 });
     </script>
 </body>

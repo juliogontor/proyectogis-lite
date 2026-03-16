@@ -54,6 +54,7 @@ maplibregl.addProtocol('supabase', async (params, abortController) => {
 
     return { data: bytes.buffer };
 });
+maplibregl.addProtocol('cog', MaplibreCOGProtocol.cogProtocol);
 
 // 2. Configurar el mapa
 const map = new maplibregl.Map({
@@ -67,7 +68,7 @@ map.on('load', () => {
     
       map.addSource('cogSource', {
             type: 'raster',
-            url: 'cog://https://maplibre.org/maplibre-gl-js/docs/assets/cog.tif',
+            url: 'cog://https://zamaouqtwtiapibscmaf.supabase.co/storage/v1/object/public/rasters/converted.tif',
             tileSize: 256
         });
 

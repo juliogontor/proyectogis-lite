@@ -5,27 +5,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Geoportal - MapLibre Edition</title>
-    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script src="https://unpkg.com/maplibre-gl@4.0.0/dist/maplibre-gl.js"></script>
     <link href="https://unpkg.com/maplibre-gl@4.0.0/dist/maplibre-gl.css" rel="stylesheet" />
-    <script src="https://unpkg.com/georaster-layer-for-leaflet/dist/georaster-layer-for-leaflet.min.js"></script>
-   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"/>
     <style>
-      #map, #overlay {
-        bottom: 0;
-        left: 0;
-        position: absolute;
-        right: 0;
-        top: 0;
-      }
-      #map {
-        z-index: 8;
-      }
-      #overlay {
-        background: rgba(0, 120, 0, 1);
-        padding: 30px;
-        z-index: 9;
-      }
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        #map {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 100%;
+        }
     </style>
 </head>
 
@@ -37,84 +30,59 @@
         const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InphbWFvdXF0d3RpYXBpYnNjbWFmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzNjY1ODMsImV4cCI6MjA4ODk0MjU4M30.Uzzr40xDGUyRYbnjoTFNt7ridzb8F1UFjBglo35coPE";
 
 
-        // 1. Registrar el protocolo personalizado 'supabase://'
-        maplibregl.addProtocol('supabase', async (params, abortController) => {
-            const url = params.url.replace('supabase://', 'https://');
+       // 1. Registrar el protocolo personalizado 'supabase://'
+maplibregl.addProtocol('supabase', async (params, abortController) => {
+    const url = params.url.replace('supabase://', 'https://');
+    
+    const response = await fetch(url, {
+        headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
+    });
+    
+    const json = await response.json();
+    const base64 = json; // Nombre de tu función
 
-            const response = await fetch(url, {
-                headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
-            });
+    if (!base64) {
+        return { data: new Uint8Array(0).buffer };
+    }
 
-            const json = await response.json();
-            const base64 = json; // Nombre de tu función
+    // Convertir Base64 a ArrayBuffer directamente
+    const binary = atob(base64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) {
+        bytes[i] = binary.charCodeAt(i);
+    }
 
-            if (!base64) {
-                return { data: new Uint8Array(0).buffer };
-            }
+    return { data: bytes.buffer };
+});
 
-            // Convertir Base64 a ArrayBuffer directamente
-            const binary = atob(base64);
-            const bytes = new Uint8Array(binary.length);
-            for (let i = 0; i < binary.length; i++) {
-                bytes[i] = binary.charCodeAt(i);
-            }
+// 2. Configurar el mapa
+const map = new maplibregl.Map({
+    container: 'map',
+    style: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json', 
+    center: [-103.24, 20.62], // Centro de Tonalá
+    zoom: 10
+});
 
-            return { data: bytes.buffer };
-        });
+map.on('load', () => {
+    map.addSource('colonias', {
+        type: 'vector',
+        // Usamos nuestro protocolo 'supabase://' en lugar de 'https://'
+        tiles: [
+            `supabase://${SB_URL.replace('https://','')}/rest/v1/rpc/get_colonia_mvt_v3?x={x}&y={y}&z={z}`
+        ]
+    });
 
-        // 2. Configurar el mapa
-        const map = new maplibregl.Map({
-            container: 'map',
-            style: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
-            center: [-103.24, 20.62], // Centro de Tonalá
-            zoom: 10
-        });
-
-        map.on('load', () => {
-            map.addSource('colonias', {
-                type: 'vector',
-                // Usamos nuestro protocolo 'supabase://' en lugar de 'https://'
-                tiles: [
-                    `supabase://${SB_URL.replace('https://', '')}/rest/v1/rpc/get_colonia_mvt_v3?x={x}&y={y}&z={z}`
-                ]
-            });
-
-
-            var parse_georaster = require("georaster");
-            var GeoRasterLayer = require("georaster-layer-for-leaflet");
-
-            // URL pública de tu archivo en Supabase
-            const urlTif = "https://zamaouqtwtiapibscmaf.supabase.co/storage/v1/object/public/rasters/atoto2.tif";
-
-
-            fetch(urlTif)
-                .then(response => response.arrayBuffer())
-                .then(arrayBuffer => {
-                    parseGeoraster(arrayBuffer).then(georaster => {
-                        console.log("georaster:", georaster);
-
-                        var layer = new GeoRasterLayer({
-                            georaster: georaster,
-                            opacity: 1,
-                            pixelValuesToColorFn: values => values[0] === 42 ? '#ffffff' : '#000000',
-                            resolution: 64 // optional parameter for adjusting display resolution
-                        });
-                        layer.addTo(map);
-                      
-                    });
-                });
-
-           map.addLayer({
-                            'id': 'colonias-layer',
-                            'type': 'fill',
-                            'source': 'colonias',
-                            'source-layer': 'colonia',
-                            'paint': {
-                                'fill-color': '#00ff00',
-                                'fill-opacity': 0.5
-                            }
-                        });       
-        });
+    map.addLayer({
+        'id': 'colonias-layer',
+        'type': 'fill',
+        'source': 'colonias',
+        'source-layer': 'colonia',
+        'paint': {
+            'fill-color': '#00ff00',
+            'fill-opacity': 0.5
+        }
+    });
+});
     </script>
 </body>
 

@@ -60,8 +60,9 @@ maplibregl.addProtocol('cog', MaplibreCOGProtocol.cogProtocol);
 const map = new maplibregl.Map({
     container: 'map',
     style: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json', 
-    center: [-103.24, 20.62], // Centro de Tonalá
-    zoom: 10
+    //center: [-103.24, 20.62], // Centro de Tonalá
+    center: [-102.50942, 20.55079],
+    zoom: 14
 });
 
 map.on('load', () => {

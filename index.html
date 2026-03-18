@@ -155,16 +155,16 @@
                     type: 'raster'
                 });
 
-                map.addSource('colonias', {
+                map.addSource('predio', {
                     type: 'vector',
-                    tiles: [`supabase://${SB_URL.replace('https://','')}/rest/v1/rpc/get_colonia_mvt_v3?x={x}&y={y}&z={z}`]
+                    tiles: [`supabase://${SB_URL.replace('https://','')}/rest/v1/rpc/get_predi_mvt?x={x}&y={y}&z={z}`]
                 });
 
                 map.addLayer({
-                    'id': 'colonias-layer',
+                    'id': 'predio-layer',
                     'type': 'fill',
-                    'source': 'colonias',
-                    'source-layer': 'colonia',
+                    'source': 'predio',
+                    'source-layer': 'predio',
                     'paint': {
                         'fill-color': '#00ff00',
                         'fill-opacity': 0.5

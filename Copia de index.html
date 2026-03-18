@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geoportal - MapLibre Edition</title>
+    <script src="https://unpkg.com/maplibre-gl@4.0.0/dist/maplibre-gl.js"></script>
+    <link href="https://unpkg.com/maplibre-gl@4.0.0/dist/maplibre-gl.css" rel="stylesheet" />
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        #map {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="map"></div>
+<script src="https://unpkg.com/@geomatico/maplibre-cog-protocol@0.5.0/dist/index.js"></script>
+    <script>
+        const SB_URL = "https://zamaouqtwtiapibscmaf.supabase.co";
+        const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InphbWFvdXF0d3RpYXBpYnNjbWFmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzNjY1ODMsImV4cCI6MjA4ODk0MjU4M30.Uzzr40xDGUyRYbnjoTFNt7ridzb8F1UFjBglo35coPE";
+
+
+       // 1. Registrar el protocolo personalizado 'supabase://'
+maplibregl.addProtocol('supabase', async (params, abortController) => {
+    const url = params.url.replace('supabase://', 'https://');
+    
+    const response = await fetch(url, {
+        headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
+    });
+    
+    const json = await response.json();
+    const base64 = json; // Nombre de tu función
+
+    if (!base64) {
+        return { data: new Uint8Array(0).buffer };
+    }
+
+    // Convertir Base64 a ArrayBuffer directamente
+    const binary = atob(base64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) {
+        bytes[i] = binary.charCodeAt(i);
+    }
+
+    return { data: bytes.buffer };
+});
+maplibregl.addProtocol('cog', MaplibreCOGProtocol.cogProtocol);
+
+// 2. Configurar el mapa
+const map = new maplibregl.Map({
+    container: 'map',
+    style: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json', 
+    //center: [-103.24, 20.62], // Centro de Tonalá
+    center: [-102.50942, 20.55079],
+    zoom: 14
+});
+
+map.on('load', () => {
+    
+      map.addSource('cogSource', {
+            type: 'raster',
+            url: 'cog://https://zamaouqtwtiapibscmaf.supabase.co/storage/v1/object/public/rasters/atoto2.tif',
+            tileSize: 256
+        });
+
+        map.addLayer({
+            id: 'cogLayer',
+            source: 'cogSource',
+            type: 'raster'
+        });
+
+    map.addSource('colonias', {
+        type: 'vector',
+        // Usamos nuestro protocolo 'supabase://' en lugar de 'https://'
+        tiles: [
+            `supabase://${SB_URL.replace('https://','')}/rest/v1/rpc/get_colonia_mvt_v3?x={x}&y={y}&z={z}`
+        ]
+    });
+
+    map.addLayer({
+        'id': 'colonias-layer',
+        'type': 'fill',
+        'source': 'colonias',
+        'source-layer': 'colonia',
+        'paint': {
+            'fill-color': '#00ff00',
+            'fill-opacity': 0.5
+        }
+    });
+});
+    </script>
+</body>
+
+</html>
